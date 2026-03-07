@@ -1,0 +1,258 @@
+--[[
+    S҉P҉O҉O҉K҉I҉ ҉H҉U҉B҉ v2.3 [Final Modified]
+    المميزات: تشغيل فونك، تخريب، فلنق الكنبة المطور، وقسم المتعة
+    التعديل الأخير: تحديث نظام الـ Bio والرسالة الختامية
+    الواجهة: Rayfield UI Library
+]]
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local lp = Players.LocalPlayer
+
+-- متغيرات عامة
+local bangTarget = nil
+local bangEnabled = false
+local faceSitEnabled = false
+local selectedFlingPlayer = nil
+
+-- [ تحميل Rayfield ]
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = " S҉P҉O҉O҉K҉I҉ ҉H҉U҉B҉ v2.3",
+   LoadingTitle = "جاري تحميل S҉P҉O҉O҉K҉I҉ ҉H҉U҉B҉...",
+   LoadingSubtitle = "By Spooki & Modified",
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "SpookiHub",
+      FileName = "SpookiConfig"
+   }
+})
+
+-- [ نظام الـ RP الملون - تحديث البايو ]
+pcall(function()
+    local RE = ReplicatedStorage:WaitForChild("RE", 2)
+    if RE then
+        local NameTextEvent = RE:WaitForChild("1RPNam1eTex1t", 2)
+        local NameColorEvent = RE:WaitForChild("1RPNam1eColo1r", 2)
+        
+        -- التعديل المطلوب في البايو
+        NameTextEvent:FireServer("RolePlayName", "S҉P҉O҉O҉K҉I҉ ҉H҉U҉B҉")
+        NameTextEvent:FireServer("RolePlayBio", "توقف السكربت لحد هنا المطور فقد صوابه")
+        
+        task.spawn(function()
+            local hue = 0
+            while true do
+                hue = (hue + 0.01) % 1
+                local color = Color3.fromHSV(hue, 1, 1)
+                pcall(function()
+                    NameColorEvent:FireServer("PickingRPNameColor", color)
+                    NameColorEvent:FireServer("PickingRPBioColor", color)
+                end)
+                task.wait(0.05)
+            end
+        end)
+    end
+end)
+
+-- ═══════════════════════════════════════
+-- تبويب أغاني الفونك
+-- ═══════════════════════════════════════
+local MusicTab = Window:CreateTab("اغاني الفونك", 4483362458)
+
+local function playMusic(soundId)
+    pcall(function()
+        local args1 = {[1] = "SkateBoard"}
+        ReplicatedStorage.RE:FindFirstChild("1NoMoto1rVehicle1s"):FireServer(unpack(args1))
+        task.wait(0.3)
+        local args2 = {[1] = "PickingScooterMusicText", [2] = tostring(soundId)}
+        ReplicatedStorage.RE:FindFirstChild("1NoMoto1rVehicle1s"):FireServer(unpack(args2))
+    end)
+end
+
+MusicTab:CreateInput({
+    Name = "ادخل كود الاغنية",
+    PlaceholderText = "هنا",
+    Callback = function(value) playMusic(value) end
+})
+
+local songs = {
+    {"افخم فونك", "17647322226"}, {"فونك غضب", "115859025716354"}, {"فونك 5x30", "73966367524216"},
+    {"فونك عالمي", "76578817848504"}, {"فونك تيك توك", "93218265275853"}, {"فونك ممتاز", "102402883551679"},
+    {"جرب وما تندم 1", "81023003196738"}, {"جرب وما تندم 2", "134833118817796"}, {"جرب وما تندم 3", "131794008455004"},
+    {"جرب وما تندم 4", "80281881556916"}, {"جرب وما تندم 5", "91611648163631"}, {"جرب وما تندم 6", "140498577577255"},
+    {"جرب وما تندم 7", "103288558732219"}, {"جرب وما تندم 8", "97647421021323"}, {"جرب وما تندم 9", "105438850576001"},
+    {"جرب وما تندم 10", "94943308357738"}, {"جرب وما تندم 11", "7942547789"}, {"جرب وما تندم 12", "6713993281"},
+    {"جرب وما تندم 13", "99113135294997"}, {"جرب وما تندم 14", "77446238713316"}, {"جرب وما تندم 15", "5849978429"},
+    {"جرب وما تندم 16", "78162685107156"}, {"جرب وما تندم 17", "97527941489881"}, {"جرب وما تندم 18", "137441889952684"},
+    {"جرب وما تندم 19", "6536444735"}
+}
+
+for _, s in ipairs(songs) do
+    MusicTab:CreateButton({ Name = s[1], Callback = function() playMusic(s[2]) end })
+end
+
+-- ═══════════════════════════════════════
+-- تبويب المتعه
+-- ═══════════════════════════════════════
+local FunTab = Window:CreateTab("المتعه", 4483362458)
+
+FunTab:CreateInput({
+    Name = "اسم الضحية",
+    PlaceholderText = "اكتب جزء من الاسم...",
+    Callback = function(text)
+        for _, p in pairs(Players:GetPlayers()) do
+            if p.Name:lower():find(text:lower()) and p ~= lp then
+                bangTarget = p
+                Rayfield:Notify({ Title = "المتعه", Content = "تم تحديد: " .. p.Name, Duration = 3 })
+                return
+            end
+        end
+        bangTarget = nil
+    end
+})
+
+FunTab:CreateToggle({
+    Name = "تفعيل Bang",
+    CurrentValue = false,
+    Callback = function(state)
+        bangEnabled = state
+        faceSitEnabled = false
+    end
+})
+
+FunTab:CreateToggle({
+    Name = "تفعيل FaceSit",
+    CurrentValue = false,
+    Callback = function(state)
+        faceSitEnabled = state
+        bangEnabled = false
+    end
+})
+
+RunService.Heartbeat:Connect(function()
+    pcall(function()
+        if (faceSitEnabled or bangEnabled) and bangTarget and bangTarget.Character then
+            local targetChar = bangTarget.Character
+            local hrp = lp.Character.HumanoidRootPart
+            local move = math.sin(tick() * 150) * 1.5
+            hrp.Velocity = Vector3.zero
+            if faceSitEnabled and targetChar:FindFirstChild("Head") then
+                lp.Character.Humanoid.Sit = true
+                hrp.CFrame = targetChar.Head.CFrame * CFrame.new(0, 0.2, -0.5 + move) * CFrame.Angles(0, math.rad(180), 0)
+            elseif bangEnabled then
+                lp.Character.Humanoid.Sit = false
+                hrp.CFrame = targetChar.HumanoidRootPart.CFrame * CFrame.new(0, 0.5, 1.1 + move)
+            end
+        end
+    end)
+end)
+
+-- ═══════════════════════════════════════
+-- تبويب الفلنق (المطور)
+-- ═══════════════════════════════════════
+local FlingTab = Window:CreateTab(" الفلنق", 4483362458)
+
+FlingTab:CreateSection("فلنق بالكنبة")
+
+FlingTab:CreateButton({
+    Name = "اخذ الكنبة",
+    Callback = function()
+        pcall(function()
+            local args = {[1] = "PickingTools", [2] = "Couch"}
+            ReplicatedStorage.RE:FindFirstChild("1Too1l"):InvokeServer(unpack(args))
+        end)
+        Rayfield:Notify({ Title = "الفلنق", Content = "تم اخذ الكنبة!", Duration = 3 })
+    end
+})
+
+FlingTab:CreateInput({
+    Name = "اكتب اسم الضحية",
+    PlaceholderText = "اكتب الاسم هنا...",
+    RemoveTextAfterFocusLost = false,
+    Callback = function(text)
+        local searchText = text:lower()
+        if #searchText >= 1 then
+            for _, p in pairs(Players:GetPlayers()) do
+                if p.Name:lower():find(searchText) and p ~= lp then
+                    selectedFlingPlayer = p
+                    Rayfield:Notify({ Title = "الفلنق", Content = "تم تحديد: " .. p.Name, Duration = 3 })
+                    return
+                end
+            end
+        end
+        selectedFlingPlayer = nil
+    end
+})
+
+FlingTab:CreateToggle({
+    Name = "قتل اللاعب بالكنبة",
+    CurrentValue = false,
+    Callback = function(state)
+        if state then
+            if not selectedFlingPlayer then
+                Rayfield:Notify({ Title = "خطأ", Content = "اختر لاعب اولاً!", Duration = 3 })
+                return
+            end
+            getgenv().flingloop = true
+            task.spawn(function()
+                while getgenv().flingloop do
+                    pcall(function()
+                        local target = selectedFlingPlayer
+                        if not target or not target.Character then return end
+                        local char = lp.Character
+                        local rootPart = char:FindFirstChild("HumanoidRootPart")
+                        local tRoot = target.Character:FindFirstChild("HumanoidRootPart")
+                        if rootPart and tRoot then
+                           rootPart.CFrame = tRoot.CFrame * CFrame.new(0, 1.5, 0)
+                           rootPart.Velocity = Vector3.new(9e7, 9e7, 9e7)
+                        end
+                    end)
+                    task.wait()
+                end
+            end)
+        else
+            getgenv().flingloop = false
+        end
+    end
+})
+
+-- ═══════════════════════════════════════
+-- تبويب التخريب
+-- ═══════════════════════════════════════
+local KillTab = Window:CreateTab("التخريب", 4483362458)
+local killTargetName = nil
+
+KillTab:CreateSection("قتل بالسفينة")
+KillTab:CreateInput({
+    Name = "اكتب اسم الضحية",
+    PlaceholderText = "اكتب الاسم هنا...",
+    Callback = function(text)
+        for _, p in pairs(Players:GetPlayers()) do
+            if p.Name:lower():find(text:lower()) and p ~= lp then
+                killTargetName = p.Name
+                Rayfield:Notify({ Title = "التخريب", Content = "تم تحديد: " .. p.Name, Duration = 3 })
+                return
+            end
+        end
+    end
+})
+
+KillTab:CreateButton({
+    Name = "اقتل اللاعب بالسفينة",
+    Callback = function()
+        if not killTargetName then Rayfield:Notify({ Title = "خطأ", Content = "حدد ضحية أولاً!" }) return end
+        pcall(function()
+            local char = lp.Character
+            local hrp = char.HumanoidRootPart
+            hrp.CFrame = CFrame.new(634.18, -4.00, 1839.65)
+            task.wait(0.5)
+            ReplicatedStorage.RE:WaitForChild("1Ca1r"):FireServer("PickingBoat", "MilitaryBoatFree")
+        end)
+    end
+})
+
+Rayfield:Notify({ Title = "S҉P҉O҉O҉K҉I҉ ҉H҉U҉B҉", Content = "تم تحديث البايو بنجاح! المطور فقد صوابه..", Duration = 5 })
+
